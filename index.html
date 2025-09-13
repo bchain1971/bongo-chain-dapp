@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bongo Chain | Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* All CSS styles are included here */
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --dark-bg: #121212;
+            --surface-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --text-muted: #888;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 15px rgba(106, 17, 203, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #333;
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        .btn-danger {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        main {
+            padding-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--surface-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .card-subtitle {
+            margin-top: 0;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .dashboard-grid .label {
+            display: block;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .dashboard-grid .value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .value.connected {
+            color: var(--success-color);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .owner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .owner-grid button { margin-top: 0.5rem; }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #333;
+            color: var(--text-muted);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        #notification.show {
+            transform: translateX(0);
+        }
+
+        #notification.success {
+            background-color: var(--success-color);
+        }
+
+        #notification.error {
+            background-color: var(--error-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .actions-grid { grid-template-columns: 1fr; }
+            header { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification element for feedback -->
+    <div id="notification" class="hidden"></div>
+    
+    <!-- Main application container -->
+    <div class="container">
+        <header>
+            <div class="logo">Bongo Chain</div>
+            <nav>
+                <button id="connectButton" class="btn btn-primary">Connect Wallet</button>
+            </nav>
+        </header>
+
+        <main id="mainContent" class="hidden">
+            <!-- User Dashboard Section -->
+            <section class="card dashboard">
+                <h2 class="card-title">My Dashboard</h2>
+                <div class="dashboard-grid">
+                    <div>
+                        <span class="label">Status</span>
+                        <span id="connectionStatus" class="value connected">Connected</span>
+                    </div>
+                    <div>
+                        <span class="label">Wallet Address</span>
+                        <span id="userAddress" class="value"></span>
+                    </div>
+                    <div>
+                        <span class="label">Vault Balance</span>
+                        <span id="userBalance" class="value">0.00 ETH</span>
+                    </div>
+                    <div>
+                        <span class="label">Bongo Points</span>
+                        <span id="userPoints" class="value">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Actions: Deposit & Withdraw -->
+            <section class="actions-grid">
+                <div class="card">
+                    <h2 class="card-title">Deposit ETH</h2>
+                    <p class="card-subtitle">Lock your ETH to earn rewards. Longer locks get higher bonuses.</p>
+                    <div class="form-group">
+                        <label for="depositAmount">Amount (Max: 1 ETH)</label>
+                        <input type="number" id="depositAmount" placeholder="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="lockDays">Lock Period (1-365 days)</label>
+                        <input type="number" id="lockDays" placeholder="30">
+                    </div>
+                    <button id="depositButton" class="btn btn-primary btn-block">Deposit</button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Withdraw ETH</h2>
+                    <p class="card-subtitle">Withdraw your deposited ETH. A penalty may apply for early withdrawal.</p>
+                    <div class="form-group">
+                        <label for="withdrawAmount">Amount to Withdraw</label>
+                        <input type="number" id="withdrawAmount" placeholder="0.25">
+                    </div>
+                    <button id="withdrawButton" class="btn btn-secondary btn-block">Withdraw</button>
+                </div>
+            </section>
+            
+            <!-- Referral Section -->
+            <section class="card">
+                 <h2 class="card-title">Referral Program</h2>
+                 <p class="card-subtitle">Set a referrer to reward them with a portion of your deposit fees.</p>
+                 <div class="form-group">
+                    <label for="referrerAddress">Referrer Wallet Address</label>
+                    <input type="text" id="referrerAddress" placeholder="0x...">
+                 </div>
+                 <button id="setReferrerButton" class="btn btn-secondary">Set Referrer</button>
+            </section>
+
+            <!-- Owner Section (hidden by default) -->
+            <section id="ownerSection" class="card hidden">
+                <h2 class="card-title">Owner Admin Panel</h2>
+                <div class="owner-grid">
+                    <div class="form-group">
+                        <label>Owner Withdraw</label>
+                        <input type="text" id="recipientAddress" placeholder="Recipient Address">
+                        <input type="number" id="ownerWithdrawAmount" placeholder="Amount in ETH">
+                        <button id="ownerWithdrawButton" class="btn btn-danger">Withdraw</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Controls</label>
+                        <button id="initiateEmergencyWithdrawalButton" class="btn btn-danger">Initiate Emergency</button>
+                        <button id="executeEmergencyWithdrawalButton" class="btn btn-danger">Execute Emergency</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Set Fees</label>
+                        <input type="number" id="newDepositFee" placeholder="New Deposit Fee (%)">
+                        <button id="setDepositFeeButton" class="btn btn-secondary">Set</button>
+                        <input type="number" id="newReferralFee" placeholder="New Referral Fee (%)">
+                        <button id="setReferralFeeButton" class="btn btn-secondary">Set</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Set Max Deposit</label>
+                        <input type="number" id="newMaxDeposit" placeholder="New Max Deposit (ETH)">
+                        <button id="setMaxDepositButton" class="btn btn-secondary">Set Limit</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer>
+            Bongo Chain © 2025
+        </footer>
+    </div>
+
+    <!-- Ethers.js library for wallet interaction -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    
+    <!-- All JavaScript logic is included here -->
+    <script>
+        window.addEventListener('load', () => {
+            // --- CONFIGURATION ---
+            const contractAddress = "0x11FBA2556535C3e67C0bF3Cab27E9278615Ea39e";
+            const contractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"lockBlocks","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"OwnerWithdrawal","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"points","type":"uint256"}],"name":"PointsEarned","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"referrer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"ReferralReward","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"penalty","type":"uint256"}],"name":"UserWithdrawal","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"calculatePenalty","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"lockDays","type":"uint256"}],"name":"deposit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"depositFeePercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawalInitiated","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawalTimelock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawalTimestamp","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address payable","name":"recipient","type":"address"}],"name":"executeEmergencyWithdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"start","type":"uint256"},{"internalType":"uint256","name":"count","type":"uint256"}],"name":"getDepositHistory","outputs":[{"components":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"uint256","name":"lockBlocks","type":"uint256"}],"internalType":"struct AuroraVault.DepositLog[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserPoints","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"initiateEmergencyWithdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"maxDepositLimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address payable","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"ownerWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referralEarnings","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"referralFeePercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referrals","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"setDepositFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newLimit","type":"uint256"}],"name":"setMaxDepositLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"referrer","type":"address"}],"name":"setReferral","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"setReferralFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalDeposits","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalPointsDistributed","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userBalances","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userDepositTimestamps","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userLockEndBlocks","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userPoints","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+
+            // --- STATE VARIABLES ---
+            let provider;
+            let signer;
+            let contract;
+
+            // --- DOM ELEMENTS ---
+            const connectButton = document.getElementById('connectButton');
+            const mainContent = document.getElementById('mainContent');
+            const ownerSection = document.getElementById('ownerSection');
+            const userAddress = document.getElementById('userAddress');
+            const userBalance = document.getElementById('userBalance');
+            const userPoints = document.getElementById('userPoints');
+            const notification = document.getElementById('notification');
+
+            // --- HELPER FUNCTIONS ---
+            const showNotification = (message, isError = false) => {
+                notification.textContent = message;
+                notification.className = isError ? 'error' : 'success';
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000);
+            };
+
+            const withLoading = async (button, action) => {
+                button.disabled = true;
+                const originalText = button.textContent;
+                button.textContent = 'Processing...';
+                try {
+                    await action();
+                } catch (error) {
+                    console.error(error);
+                    showNotification(error.data ? error.data.message : error.message, true);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+            };
+
+            // --- APP LOGIC ---
+            const connectWallet = async () => {
+                if (typeof window.ethereum === 'undefined') {
+                    return showNotification('Please install MetaMask!', true);
+                }
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                    const address = await signer.getAddress();
+                    userAddress.textContent = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+                    connectButton.textContent = 'Wallet Connected';
+                    connectButton.disabled = true;
+
+                    mainContent.classList.remove('hidden');
+                    updateUserInfo();
+                    checkOwner();
+                } catch (error) {
+                    showNotification('Wallet connection failed.', true);
+                }
+            };
+
+            const updateUserInfo = async () => {
+                try {
+                    const address = await signer.getAddress();
+                    const balance = await contract.getUserBalance(address);
+                    const points = await contract.getUserPoints(address);
+                    userBalance.textContent = `${parseFloat(ethers.utils.formatEther(balance)).toFixed(4)} ETH`;
+                    userPoints.textContent = points.toString();
+                } catch (error) {
+                    console.error("Could not update user info:", error);
+                }
+            };
+            
+            const checkOwner = async () => {
+                const owner = await contract.owner();
+                const currentUser = await signer.getAddress();
+                if (owner.toLowerCase() === currentUser.toLowerCase()) {
+                    ownerSection.classList.remove('hidden');
+                }
+            };
+
+            // --- EVENT LISTENERS ---
+            connectButton.addEventListener('click', connectWallet);
+
+            document.getElementById('depositButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const amount = document.getElementById('depositAmount').value;
+                const lockDays = document.getElementById('lockDays').value;
+                if (!amount || !lockDays) return showNotification('Please fill in all fields.', true);
+                
+                const tx = await contract.deposit(lockDays, { value: ethers.utils.parseEther(amount) });
+                await tx.wait();
+                showNotification('Deposit successful!');
+                updateUserInfo();
+            }));
+
+            document.getElementById('withdrawButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const amount = document.getElementById('withdrawAmount').value;
+                if (!amount) return showNotification('Please enter an amount.', true);
+
+                const tx = await contract.withdraw(ethers.utils.parseEther(amount));
+                await tx.wait();
+                showNotification('Withdrawal successful!');
+                updateUserInfo();
+            }));
+
+            document.getElementById('setReferrerButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const referrer = document.getElementById('referrerAddress').value;
+                if (!referrer) return showNotification('Please enter a referrer address.', true);
+
+                const tx = await contract.setReferral(referrer);
+                await tx.wait();
+                showNotification('Referrer set successfully!');
+            }));
+            
+            // --- OWNER FUNCTIONS ---
+            document.getElementById('ownerWithdrawButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const recipient = document.getElementById('recipientAddress').value;
+                const amount = document.getElementById('ownerWithdrawAmount').value;
+                const tx = await contract.ownerWithdraw(recipient, ethers.utils.parseEther(amount));
+                await tx.wait();
+                showNotification('Owner withdrawal successful!');
+            }));
+
+            document.getElementById('initiateEmergencyWithdrawalButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const tx = await contract.initiateEmergencyWithdrawal();
+                await tx.wait();
+                showNotification('Emergency withdrawal initiated!');
+            }));
+
+            document.getElementById('executeEmergencyWithdrawalButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const recipient = await signer.getAddress();
+                const tx = await contract.executeEmergencyWithdrawal(recipient);
+                await tx.wait();
+                showNotification('Emergency withdrawal executed!');
+            }));
+
+            document.getElementById('setDepositFeeButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const fee = document.getElementById('newDepositFee').value;
+                const tx = await contract.setDepositFee(fee);
+                await tx.wait();
+                showNotification('Deposit fee updated!');
+            }));
+
+            document.getElementById('setReferralFeeButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const fee = document.getElementById('newReferralFee').value;
+                const tx = await contract.setReferralFee(fee);
+                await tx.wait();
+                showNotification('Referral fee updated!');
+            }));
+
+            document.getElementById('setMaxDepositButton').addEventListener('click', (e) => withLoading(e.target, async () => {
+                const limit = document.getElementById('newMaxDeposit').value;
+                const tx = await contract.setMaxDepositLimit(ethers.utils.parseEther(limit));
+                await tx.wait();
+                showNotification('Max deposit limit updated!');
+            }));
+        });
+    </script>
+</body>
+</html>
