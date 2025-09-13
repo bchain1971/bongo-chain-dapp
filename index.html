@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Bongo Chain Dapp</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" rel="stylesheet">
   <style>
     body {
       background: #0f0f0f;
       color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .navbar {
+      background: #1a1a1a;
     }
     .card {
       background: #1a1a1a;
@@ -21,33 +26,112 @@
     .btn-primary:hover {
       background-color: #0069d9;
     }
-    .hero {
-      background: linear-gradient(135deg, #1e1e2f, #2a2a3f);
-      padding: 60px 20px;
-      text-align: center;
+    .dashboard-card {
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    .section-title {
-      margin-top: 40px;
-      font-size: 1.5rem;
-      font-weight: bold;
-      border-bottom: 2px solid #555;
-      display: inline-block;
-      padding-bottom: 10px;
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 20px;
+      background-color: #1a1a1a;
+      border-right: 1px solid #333;
+    }
+    .main-content {
+      margin-left: 200px;
+      padding: 20px;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: relative;
+        margin-bottom: 20px;
+      }
+      .main-content {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header class="hero">
-      <h1>Bongo Chain Dapp</h1>
-      <p>Secure your ETH with staking, referrals, and rewards</p>
-      <button id="connectWallet" class="btn btn-primary mt-3">Connect Wallet</button>
-    </header>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <h3 class="text-center mb-4">Bongo Chain</h3>
+    <ul class="nav flex-column">
+      <li class="nav-item"><a class="nav-link active" href="#dashboard">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="#deposits">Deposits</a></li>
+      <li class="nav-item"><a class="nav-link" href="#referrals">Referrals</a></li>
+      <li class="nav-item"><a class="nav-link" href="#settings">Settings</a></li>
+    </ul>
+  </nav>
 
-    <!-- Deposit Section -->
-    <div class="card mt-4 p-4">
-      <h2 class="section-title">Deposit ETH</h2>
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Bongo Chain Dapp</a>
+        <button class="btn btn-primary" id="connectWallet">Connect Wallet</button>
+      </div>
+    </nav>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="container">
+      <h2 class="mb-4">Dashboard Overview</h2>
+      
+      <!-- Key Metrics -->
+      <div class="row">
+        <div class="col-md-4">
+          <div class="dashboard-card">
+            <h5>Wallet Balance</h5>
+            <h3 id="walletBalance">0 ETH</h3>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="dashboard-card">
+            <h5>Points Earned</h5>
+            <h3 id="pointsEarned">0</h3>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="dashboard-card">
+            <h5>Total Deposits</h5>
+            <h3 id="totalDeposits">0 ETH</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">Deposit History</div>
+            <div class="chart-container">
+              <canvas id="depositChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">Referral Earnings</div>
+            <div class="chart-container">
+              <canvas id="referralChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deposits Section -->
+    <div id="deposits" class="container mt-5" style="display:none;">
+      <h2 class="mb-4">Make a Deposit</h2>
       <form id="depositForm">
         <div class="mb-3">
           <label for="lockDays">Lock Period (1-365 days)</label>
@@ -57,21 +141,9 @@
       </form>
     </div>
 
-    <!-- Withdraw Section -->
-    <div class="card mt-4 p-4">
-      <h2 class="section-title">Withdraw ETH</h2>
-      <form id="withdrawForm">
-        <div class="mb-3">
-          <label for="withdrawAmount">Amount to Withdraw</label>
-          <input type="number" id="withdrawAmount" class="form-control" step="0.001" required />
-        </div>
-        <button type="submit" class="btn btn-primary">Withdraw</button>
-      </form>
-    </div>
-
-    <!-- Referral Section -->
-    <div class="card mt-4 p-4">
-      <h2 class="section-title">Set Referral</h2>
+    <!-- Referrals Section -->
+    <div id="referrals" class="container mt-5" style="display:none;">
+      <h2 class="mb-4">Referral System</h2>
       <form id="referralForm">
         <div class="mb-3">
           <label for="referrerAddress">Referrer Address</label>
@@ -79,69 +151,139 @@
         </div>
         <button type="submit" class="btn btn-primary">Set Referral</button>
       </form>
+      <div class="mt-4">
+        <h5>Referral Earnings</h5>
+        <p id="referralEarnings">0 ETH</p>
+      </div>
     </div>
 
-    <!-- User Dashboard -->
-    <div class="card mt-4 p-4">
-      <h2 class="section-title">Your Dashboard</h2>
-      <div id="userBalance">Balance: 0 ETH</div>
-      <div id="userPoints">Points: 0</div>
-      <div id="depositHistory"></div>
+    <!-- Settings Section -->
+    <div id="settings" class="container mt-5" style="display:none;">
+      <h2 class="mb-4">Settings</h2>
+      <div class="card">
+        <div class="card-header">Contract Info</div>
+        <div class="card-body">
+          <p><strong>Contract Address:</strong> <code>0x11FBA2556535C3e67C0bF3Cab27E9278615Ea39e</code></p>
+          <p><strong>Network:</strong> Ethereum Mainnet</p>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
+    // Replace with your contract ABI
     const contractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"lockBlocks","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"OwnerWithdrawal","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"points","type":"uint256"}],"name":"PointsEarned","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"referrer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"ReferralReward","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"penalty","type":"uint256"}],"name":"UserWithdrawal","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"calculatePenalty","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"lockDays","type":"uint256"}],"name":"deposit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"depositFeePercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawalInitiated","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawalTimelock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawalTimestamp","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address payable","name":"recipient","type":"address"}],"name":"executeEmergencyWithdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"start","type":"uint256"},{"internalType":"uint256","name":"count","type":"uint256"}],"name":"getDepositHistory","outputs":[{"components":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"uint256","name":"lockBlocks","type":"uint256"}],"internalType":"struct AuroraVault.DepositLog[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserPoints","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"initiateEmergencyWithdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"maxDepositLimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address payable","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"ownerWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referralEarnings","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"referralFeePercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referrals","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"setDepositFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newLimit","type":"uint256"}],"name":"setMaxDepositLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"referrer","type":"address"}],"name":"setReferral","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"setReferralFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalDeposits","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalPointsDistributed","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userBalances","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userDepositTimestamps","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userLockEndBlocks","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userPoints","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
     const contractAddress = "0x11FBA2556535C3e67C0bF3Cab27E9278615Ea39e";
     let web3, contract, account;
 
+    // Initialize Web3
+    if (typeof window.ethereum !== "undefined") {
+      window.ethereum.request({ method: "eth_requestAccounts" });
+      web3 = new Web3(window.ethereum);
+      contract = new web3.eth.Contract(contractABI, contractAddress);
+    }
+
+    // Connect Wallet
     document.getElementById("connectWallet").onclick = async () => {
       if (typeof window.ethereum !== "undefined") {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        web3 = new Web3(window.ethereum);
-        contract = new web3.eth.Contract(contractABI, contractAddress);
-        account = (await web3.eth.getAccounts())[0];
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        account = accounts[0];
         updateDashboard();
       } else {
         alert("Install MetaMask to use this DApp!");
       }
     };
 
+    // Update Dashboard
+    async function updateDashboard() {
+      if (!account) return;
+
+      // Wallet Balance
+      const balance = await web3.eth.getBalance(account);
+      document.getElementById("walletBalance").innerText = `${web3.utils.fromWei(balance)} ETH`;
+
+      // Points Earned
+      const points = await contract.methods.getUserPoints(account).call();
+      document.getElementById("pointsEarned").innerText = points;
+
+      // Total Deposits
+      const totalDeposits = await contract.methods.totalDeposits().call();
+      document.getElementById("totalDeposits").innerText = `${web3.utils.fromWei(totalDeposits)} ETH`;
+
+      // Referral Earnings
+      const referralEarnings = await contract.methods.referralEarnings(account).call();
+      document.getElementById("referralEarnings").innerText = `${web3.utils.fromWei(referralEarnings)} ETH`;
+
+      // Deposit Chart
+      const depositHistory = await contract.methods.getDepositHistory(0, 10).call();
+      const depositLabels = depositHistory.map(d => new Date(d.timestamp * 1000).toLocaleDateString());
+      const depositAmounts = depositHistory.map(d => web3.utils.fromWei(d.amount));
+      updateChart("depositChart", depositLabels, depositAmounts);
+
+      // Referral Chart
+      const referralEarningsData = [100, 200, 150, 300, 250]; // Example data
+      const referralLabels = ["Jan", "Feb", "Mar", "Apr", "May"];
+      updateChart("referralChart", referralLabels, referralEarningsData);
+    }
+
+    // Update Chart
+    function updateChart(canvasId, labels, data) {
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Amount (ETH)",
+            data: data,
+            borderColor: "#007bff",
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // Deposit Form
     document.getElementById("depositForm").onsubmit = async (e) => {
       e.preventDefault();
       const lockDays = document.getElementById("lockDays").value;
-      const value = await window.ethereum.request({ method: "eth_getBalance", params: [account, "latest"] });
-      const weiValue = web3.utils.toWei("0.1", "ether"); // Example deposit amount
-      await contract.methods.deposit(lockDays).send({ from: account, value: weiValue });
+      const value = web3.utils.toWei("0.1", "ether"); // Example deposit amount
+      await contract.methods.deposit(lockDays).send({ from: account, value: value });
       alert("Deposit successful!");
       updateDashboard();
     };
 
-    document.getElementById("withdrawForm").onsubmit = async (e) => {
-      e.preventDefault();
-      const amount = document.getElementById("withdrawAmount").value;
-      await contract.methods.withdraw(web3.utils.toWei(amount, "ether")).send({ from: account });
-      alert("Withdrawal successful!");
-      updateDashboard();
-    };
-
+    // Referral Form
     document.getElementById("referralForm").onsubmit = async (e) => {
       e.preventDefault();
       const referrer = document.getElementById("referrerAddress").value;
       await contract.methods.setReferral(referrer).send({ from: account });
       alert("Referral set!");
+      updateDashboard();
     };
 
-    async function updateDashboard() {
-      const balance = await contract.methods.getUserBalance(account).call();
-      const points = await contract.methods.getUserPoints(account).call();
-      document.getElementById("userBalance").innerText = `Balance: ${web3.utils.fromWei(balance)} ETH`;
-      document.getElementById("userPoints").innerText = `Points: ${points}`;
-    }
+    // Navigation
+    document.querySelectorAll(".nav-link").forEach(link => {
+      link.addEventListener("click", () => {
+        document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+        link.classList.add("active");
+        const section = document.querySelector(link.getAttribute("href"));
+        document.querySelectorAll("div[id]").forEach(div => div.style.display = "none");
+        section.style.display = "block";
+      });
+    });
 
-    // Add deposit history display logic here
+    // Initial Load
+    updateDashboard();
   </script>
 </body>
 </html>
